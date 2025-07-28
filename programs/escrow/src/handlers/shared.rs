@@ -23,17 +23,15 @@ pub fn transfer_tokens<'info>(
         authority: authority.to_account_info(),
     };
 
-    // Only one signer seed (the PDA that owns the token account) is needed, so we create an array with the seeds
-    let signers_seeds = owning_pda_seeds.map(|seeds| [seeds]);
-
-    // Do the transfer, by calling transfer_checked - providing a different CPIU context
+    // Do the transfer, by calling transfer_checked - providing a different CPI context
     // depending on whether we're sending tokens from a PDA or not
+    let signers_seeds_bytes = owning_pda_seeds.map(|seeds| [seeds]);
     transfer_checked(
-        if let Some(seeds_arr) = signers_seeds.as_ref() {
+        if let Some(signers_seeds_bytes) = signers_seeds_bytes.as_ref() {
             CpiContext::new_with_signer(
                 token_program.to_account_info(),
                 transfer_accounts,
-                seeds_arr,
+                signers_seeds_bytes,
             )
         } else {
             CpiContext::new(token_program.to_account_info(), transfer_accounts)
@@ -58,12 +56,16 @@ pub fn close_token_account<'info>(
         authority: authority.to_account_info(),
     };
 
-    // Only one signer seed (the PDA that owns the token account) is needed, so we create an array with the seeds
-    let signers_seeds = owning_pda_seeds.map(|seeds| [seeds]);
-
-    close_account(if let Some(seeds_arr) = signers_seeds.as_ref() {
-        CpiContext::new_with_signer(token_program.to_account_info(), close_accounts, seeds_arr)
-    } else {
-        CpiContext::new(token_program.to_account_info(), close_accounts)
-    })
+    let signers_seeds_bytes = owning_pda_seeds.map(|seeds| [seeds]);
+    close_account(
+        if let Some(signers_seeds_bytes) = signers_seeds_bytes.as_ref() {
+            CpiContext::new_with_signer(
+                token_program.to_account_info(),
+                close_accounts,
+                signers_seeds_bytes,
+            )
+        } else {
+            CpiContext::new(token_program.to_account_info(), close_accounts)
+        },
+    )
 }
