@@ -1,20 +1,16 @@
-# Anchor Escrow 2025
-
-## 🆕 Updated for Anchor 0.32.1, Solana Kit, Kite, and Codama
-
-## 🆕 Now includes Rust/LiteSVM tests - check out `programs/escrow/src/tests.rs`
+# Anchor Escrow 2026
 
 [![CI Badge](https://github.com/mikemaccana/anchor-escrow-2025/actions/workflows/tests.yaml/badge.svg)](https://github.com/mikemaccana/anchor-escrow-2025/actions)
 
 **Start here for your first real Solana program / smart contract** (Solana generally uses the word 'program', older blockchains use 'smart contract'). As the saying goes, "All Solana programs are variations of an escrow."
 
-This makes **Anchor Escrow 2025** the perfect starting point for anyone diving into Solana program development with a practical, real-world application.
+This makes **Anchor Escrow 2026** the perfect starting point for anyone diving into Solana program development with a practical, real-world application.
 
-**Anchor Escrow 2025** provides:
+**Anchor Escrow 2026** provides:
 
 - Full compatibility with the latest Rust, Agave CLI, Node.js, Anchor, and Solana Kit.
 - Clean builds with zero warnings or errors.
-- Testing via npm and Node.js, avoiding third-party package managers or test runners.
+- Comprehensive testing with both [LiteSVM](https://github.com/LiteSVM/litesvm) (fast Rust tests) and TypeScript integration tests using [Solana Kite](https://solana-kite.com).
 
 ## Animated walk through
 
@@ -33,7 +29,7 @@ Without an escrow, users face significant risks:
 - **Traditional finance** charges 1-6% in fees, eating into your funds.
 - **Manual swaps** are prone to fraud. If Bob takes Alice's 10 USDC but doesn't send the 100 WIF, or if Alice fails to deliver after receiving Bob's tokens, someone gets burned.
 
-The **Anchor Escrow 2025** program acts as a trusted intermediary, releasing tokens only when both parties meet the agreed terms. This ensures Alice and Bob each receive 100% of their desired tokens, securely and without middleman fees.
+The **Anchor Escrow 2026** program acts as a trusted intermediary, releasing tokens only when both parties meet the agreed terms. This ensures Alice and Bob each receive 100% of their desired tokens, securely and without middleman fees.
 
 ## Versions
 
@@ -77,20 +73,20 @@ Using different versions may cause compatibility issues.
    npm install
    ```
 
-3. Run TypeScript tests:
+3. Run the tests (the project has both [LiteSVM](https://github.com/LiteSVM/litesvm) and [Solana Kite](https://solana-kite.com) tests - use whichever you prefer):
 
    ```bash
    anchor test
    ```
 
-4. Run LiteSVM tests:
+   Or for Rust unit tests:
 
    ```bash
-   cd programs/escrow
-   cargo test
+   cd programs/escrow && cargo test
    ```
 
-5. Deploy the program:
+4. Deploy the program:
+
    ```bash
    anchor deploy
    ```

@@ -1,8 +1,16 @@
+## 2.1.0 (2026)
+
+- Updated to Anchor 0.32.1
+- Migrated from custom `create-codama-client.ts` script to `npx create-codama-clients`
+- Added [LiteSVM](https://github.com/LiteSVM/litesvm) Rust unit tests alongside TypeScript integration tests
+- Comprehensive testing with both LiteSVM (fast Rust tests) and [Solana Kite](https://solana-kite.com) (TypeScript integration tests)
+- Updated documentation to reflect 2026 and new testing approaches
+
 ## 2.0.0
 
 - Added refund handler
 - Added Cursor AI config
-- Move to `@solana/kit, Codama and Kite for making TS clients
+- Move to `@solana/kit`, Codama and Kite for making TS clients
   - `create-codama-client.ts` is used to produce a TypeScript client from the Anchor IDL.
   - `program.methods.doThing()` becomes `programClient.getDoThingInstruction()`
 
