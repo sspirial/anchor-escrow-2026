@@ -11,35 +11,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # RUSTUP_TOOLCHAIN is needed for consistent builds per
-    # https://solana.stackexchange.com/questions/21664/why-is-the-same-commit-of-an-anchor-repo-giving-different-results-when-run-at-di
-    # TODO: remove when no longer necessary
-    env:
-      RUSTUP_TOOLCHAIN: "nightly-2025-04-16"
-
     steps:
       - uses: actions/checkout@v4
-      - uses: metaDAOproject/setup-anchor@v3.1
+      - uses: metaDAOproject/setup-anchor@main
         with:
+          # TODO HACK The npm package @coral-xyz/anchor-cli doesn't exist yet for 0.32.1
+          # So we'll install and old version, then update it to 0.32.1 in the next step
           anchor-version: "0.31.1"
           solana-cli-version: "2.1.21"
           node-version: "22.14.0"
 
-      # Pre-install the Rust toolchain to avoid installation messages during version checks
-      # https://solana.stackexchange.com/questions/21664/why-is-the-same-commit-of-an-anchor-repo-giving-different-results-when-run-at-di
-      # TODO: remove when no longer necessary
-      - name: Install Rust toolchain
+      - name: Remove unused Anchor JS package (we have Codama instead)
         run: |
-          rustup toolchain install $RUSTUP_TOOLCHAIN
-          rustup component add --toolchain $RUSTUP_TOOLCHAIN cargo clippy rust-docs rust-std rustc rustfmt
-
-      # Fix for https://github.com/solana-foundation/anchor/issues/3596
-      # TODO: Remove this once the issue is fixed
-      - name: Manually download Anchor binary
-        run: |
-          wget https://github.com/coral-xyz/anchor/releases/download/v0.31.1/anchor-0.31.1-x86_64-unknown-linux-gnu
-          chmod +x anchor-0.31.1-x86_64-unknown-linux-gnu
-          mv anchor-0.31.1-x86_64-unknown-linux-gnu `which anchor`
+          npm uninstall -g @coral-xyz/anchor-cli
 
       # Pre-download Cargo dependencies to avoid messages during version checks
       - name: Pre-download dependencies
@@ -80,13 +64,13 @@ jobs:
       - name: Build the project
         run: |
           echo "----------------------------------------"
-          echo "Running 'anchor build'..."
+          echo "Running 'anchor build'..." | tee -a build.log
           anchor build 2>&1 | tee -a build.log
 
       - name: Run tests (TypeScript)
         run: |
           echo "----------------------------------------"
-          echo "Running 'anchor test'..."
+          echo "Running 'anchor test'..." | tee -a build.log
           anchor test 2>&1 | tee -a build.log
 
       - name: Run tests (Rust)

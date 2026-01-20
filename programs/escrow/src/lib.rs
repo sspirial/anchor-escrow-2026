@@ -1,7 +1,3 @@
-#![allow(unexpected_cfgs)]
-// Stops Rust Analyzer complaining about missing configs
-// See https://solana.stackexchange.com/questions/17777
-
 use anchor_lang::prelude::*;
 use handlers::*;
 
@@ -9,7 +5,6 @@ pub mod constants;
 pub mod error;
 pub mod handlers;
 pub mod state;
-
 
 declare_id!("8jR5GeNzeweq35Uo84kGP3v1NcBaZWH5u62k7PxN4T2y");
 

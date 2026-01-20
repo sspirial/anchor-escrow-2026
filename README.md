@@ -1,6 +1,6 @@
 # Anchor Escrow 2025
 
-## 🆕 Updated for Solana Kit, Kite, and Codama
+## 🆕 Updated for Anchor 0.32.1, Solana Kit, Kite, and Codama
 
 ## 🆕 Now includes Rust/LiteSVM tests - check out `programs/escrow/src/tests.rs`
 
@@ -51,7 +51,7 @@ OS:
 Solana CLI:
   solana-cli 2.1.21 (src:8a085eeb; feat:1416569292, client:Agave)
 Anchor:
-  anchor-cli 0.31.1
+  anchor-cli 0.32.1
 Node:
   v22.14.0
 Rust:
@@ -77,16 +77,20 @@ Using different versions may cause compatibility issues.
    npm install
    ```
 
-3. Run tests:
+3. Run TypeScript tests:
 
    ```bash
-   # RUSTUP_TOOLCHAIN is needed for consistent builds per
-   # https://solana.stackexchange.com/questions/21664/why-is-the-same-commit-of-an-anchor-repo-giving-different-results-when-run-at-di
-   # TODO: remove when no longer necessary
-   RUSTUP_TOOLCHAIN=nightly-2025-04-16 anchor test
+   anchor test
    ```
 
-4. Deploy the program:
+4. Run LiteSVM tests:
+
+   ```bash
+   cd programs/escrow
+   cargo test
+   ```
+
+5. Deploy the program:
    ```bash
    anchor deploy
    ```

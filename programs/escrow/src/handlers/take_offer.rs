@@ -103,7 +103,8 @@ pub fn take_offer(context: Context<TakeOffer>) -> Result<()> {
     // Close the vault and return the rent to the maker
     close_token_account(
         &context.accounts.vault,
-        &context.accounts.taker.to_account_info(),
+        // Return the rent to the maker, since they made this account in the first place
+        &context.accounts.maker.to_account_info(),
         &context.accounts.offer.to_account_info(),
         &context.accounts.token_program,
         signers_seeds,

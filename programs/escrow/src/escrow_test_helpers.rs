@@ -1,14 +1,15 @@
-use solana_kite::{
-    create_associated_token_account, create_token_mint, deploy_program, mint_tokens_to_account,
-    send_transaction_from_instructions, get_pda_and_bump, SolanaKiteError,
-};
 use litesvm::LiteSVM;
-use std::cell::Cell;
 use solana_instruction::AccountMeta;
 use solana_instruction::Instruction;
 use solana_keypair::Keypair;
+use solana_kite::{
+    create_associated_token_account, create_token_mint, deploy_program, get_pda_and_bump,
+    mint_tokens_to_account, send_transaction_from_instructions, SolanaKiteError,
+};
+use solana_program::hash::hashv;
 use solana_pubkey::Pubkey;
 use solana_signer::Signer;
+use std::cell::Cell;
 use std::str::FromStr;
 
 pub const PROGRAM_ID: &str = "8jR5GeNzeweq35Uo84kGP3v1NcBaZWH5u62k7PxN4T2y";
@@ -32,9 +33,9 @@ pub struct EscrowTestEnvironment {
     /// The mint authority that can create and mint tokens
     pub _mint_authority: Keypair,
     /// Token mint A (the first token in escrow trades)
-    pub token_mint_a: Keypair,
+    pub token_mint_a: Pubkey,
     /// Token mint B (the second token in escrow trades)
-    pub token_mint_b: Keypair,
+    pub token_mint_b: Pubkey,
     /// Alice's keypair (typically the offer maker)
     pub alice: Keypair,
     /// Bob's keypair (typically the offer taker)
@@ -106,8 +107,8 @@ pub fn setup_escrow_test() -> EscrowTestEnvironment {
         .unwrap();
 
     // Create token mints
-    let token_mint_a = create_token_mint(&mut litesvm, &mint_authority, 9).unwrap();
-    let token_mint_b = create_token_mint(&mut litesvm, &mint_authority, 9).unwrap();
+    let token_mint_a = create_token_mint(&mut litesvm, &mint_authority, 9, None).unwrap();
+    let token_mint_b = create_token_mint(&mut litesvm, &mint_authority, 9, None).unwrap();
 
     // Create and fund Alice and Bob
     let alice = Keypair::new();
@@ -118,46 +119,52 @@ pub fn setup_escrow_test() -> EscrowTestEnvironment {
     // Create associated token accounts for both users and both token types
     let alice_token_account_a = create_associated_token_account(
         &mut litesvm,
-        &alice,
-        &token_mint_a.pubkey(),
+        &alice.pubkey(),
+        &token_mint_a,
         &mint_authority,
-    ).unwrap();
+    )
+    .unwrap();
     let alice_token_account_b = create_associated_token_account(
         &mut litesvm,
-        &alice,
-        &token_mint_b.pubkey(),
+        &alice.pubkey(),
+        &token_mint_b,
         &mint_authority,
-    ).unwrap();
+    )
+    .unwrap();
     let bob_token_account_a = create_associated_token_account(
         &mut litesvm,
-        &bob,
-        &token_mint_a.pubkey(),
+        &bob.pubkey(),
+        &token_mint_a,
         &mint_authority,
-    ).unwrap();
+    )
+    .unwrap();
     let bob_token_account_b = create_associated_token_account(
         &mut litesvm,
-        &bob,
-        &token_mint_b.pubkey(),
+        &bob.pubkey(),
+        &token_mint_b,
         &mint_authority,
-    ).unwrap();
+    )
+    .unwrap();
 
     // Mint initial token balances
     // Alice: 10 token A, 0 token B
     // Bob: 0 token A, 5 token B
     mint_tokens_to_account(
         &mut litesvm,
-        &token_mint_a.pubkey(),
+        &token_mint_a,
         &alice_token_account_a,
         10 * TOKEN_A, // Alice gets 10 token A
         &mint_authority,
-    ).unwrap();
+    )
+    .unwrap();
     mint_tokens_to_account(
         &mut litesvm,
-        &token_mint_b.pubkey(),
+        &token_mint_b,
         &bob_token_account_b,
         5 * TOKEN_B, // Bob gets 5 token B
         &mint_authority,
-    ).unwrap();
+    )
+    .unwrap();
 
     EscrowTestEnvironment {
         litesvm,
@@ -196,17 +203,17 @@ pub fn generate_offer_id() -> u64 {
 
 pub fn get_make_offer_discriminator() -> Vec<u8> {
     let discriminator_input = b"global:make_offer";
-    anchor_lang::solana_program::hash::hash(discriminator_input).to_bytes()[..8].to_vec()
+    hashv(&[discriminator_input]).to_bytes()[..8].to_vec()
 }
 
 pub fn get_take_offer_discriminator() -> Vec<u8> {
     let discriminator_input = b"global:take_offer";
-    anchor_lang::solana_program::hash::hash(discriminator_input).to_bytes()[..8].to_vec()
+    hashv(&[discriminator_input]).to_bytes()[..8].to_vec()
 }
 
 pub fn get_refund_offer_discriminator() -> Vec<u8> {
     let discriminator_input = b"global:refund_offer";
-    anchor_lang::solana_program::hash::hash(discriminator_input).to_bytes()[..8].to_vec()
+    hashv(&[discriminator_input]).to_bytes()[..8].to_vec()
 }
 
 pub struct MakeOfferAccounts {
@@ -236,8 +243,8 @@ pub fn build_make_offer_accounts(
     vault: Pubkey,
 ) -> MakeOfferAccounts {
     MakeOfferAccounts {
-        associated_token_program: spl_associated_token_account::ID,
-        token_program: spl_token::ID,
+        associated_token_program: anchor_spl::associated_token::ID,
+        token_program: anchor_spl::token::ID,
         system_program: anchor_lang::system_program::ID,
         maker,
         token_mint_a,
@@ -362,17 +369,23 @@ pub fn execute_make_offer(
     token_b_wanted_amount: u64,
 ) -> Result<(Pubkey, Pubkey), SolanaKiteError> {
     // Create PDAs
-    let (offer_account, _offer_bump) = get_pda_and_bump(&[b"offer".as_ref().into(), offer_id.to_le_bytes().as_ref().into()], &test_env.program_id);
-    let vault = spl_associated_token_account::get_associated_token_address(
+    let (offer_account, _offer_bump) = get_pda_and_bump(
+        &[
+            b"offer".as_ref().into(),
+            offer_id.to_le_bytes().as_ref().into(),
+        ],
+        &test_env.program_id,
+    );
+    let vault = anchor_spl::associated_token::get_associated_token_address(
         &offer_account,
-        &test_env.token_mint_a.pubkey(),
+        &test_env.token_mint_a,
     );
 
     // Build accounts
     let make_offer_accounts = build_make_offer_accounts(
         maker.pubkey(),
-        test_env.token_mint_a.pubkey(),
-        test_env.token_mint_b.pubkey(),
+        test_env.token_mint_a,
+        test_env.token_mint_b,
         maker_token_account_a,
         offer_account,
         vault,
@@ -408,13 +421,13 @@ pub fn execute_take_offer(
     vault: Pubkey,
 ) -> Result<(), SolanaKiteError> {
     let take_offer_accounts = TakeOfferAccounts {
-        associated_token_program: spl_associated_token_account::ID,
-        token_program: spl_token::ID,
+        associated_token_program: anchor_spl::associated_token::ID,
+        token_program: anchor_spl::token::ID,
         system_program: anchor_lang::system_program::ID,
         taker: taker.pubkey(),
         maker: maker.pubkey(),
-        token_mint_a: test_env.token_mint_a.pubkey(),
-        token_mint_b: test_env.token_mint_b.pubkey(),
+        token_mint_a: test_env.token_mint_a,
+        token_mint_b: test_env.token_mint_b,
         taker_token_account_a,
         taker_token_account_b,
         maker_token_account_b,
@@ -423,7 +436,7 @@ pub fn execute_take_offer(
     };
 
     let take_offer_instruction = build_take_offer_instruction(take_offer_accounts);
-    
+
     send_transaction_from_instructions(
         &mut test_env.litesvm,
         vec![take_offer_instruction],
@@ -441,17 +454,17 @@ pub fn execute_refund_offer(
     vault: Pubkey,
 ) -> Result<(), SolanaKiteError> {
     let refund_offer_accounts = RefundOfferAccounts {
-        token_program: spl_token::ID,
+        token_program: anchor_spl::token::ID,
         system_program: anchor_lang::system_program::ID,
         maker: maker.pubkey(),
-        token_mint_a: test_env.token_mint_a.pubkey(),
+        token_mint_a: test_env.token_mint_a,
         maker_token_account_a,
         offer_account,
         vault,
     };
 
     let refund_instruction = build_refund_offer_instruction(refund_offer_accounts);
-    
+
     send_transaction_from_instructions(
         &mut test_env.litesvm,
         vec![refund_instruction],

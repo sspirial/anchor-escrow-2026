@@ -2,6 +2,7 @@
 # Old version of Anchor used 'yarn'
 # See https://www.anchor-lang.com/docs/updates/release-notes/0-31-0
 package_manager = "npm"
+anchor_version = "0.32.1"
 
 [features]
 resolution = true
