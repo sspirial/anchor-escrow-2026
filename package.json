@@ -7,7 +7,7 @@
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "show-versions": "bash show-versions.sh",
-    "regenerate-client": "anchor build && npx tsx create-codama-client.ts"
+    "regenerate-client": "anchor build && npx create-codama-clients"
   },
   "license": "MIT",
   "devDependencies": {

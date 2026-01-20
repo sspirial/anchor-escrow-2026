@@ -1,7 +1,7 @@
 import { before, describe, test, it } from "node:test";
 import assert from "node:assert";
-import * as programClient from "../dist/js-client";
-import { getOfferDecoder, OFFER_DISCRIMINATOR } from "../dist/js-client";
+import * as programClient from "../dist/escrow-client";
+import { getOfferDecoder, OFFER_DISCRIMINATOR } from "../dist/escrow-client";
 import { connect, Connection, TOKEN_EXTENSIONS_PROGRAM, ErrorWithTransaction } from "solana-kite";
 import { type KeyPairSigner, type Address } from "@solana/kit";
 import { createTestOffer, getRandomBigInt, ONE_SOL } from "./escrow.test-helpers";

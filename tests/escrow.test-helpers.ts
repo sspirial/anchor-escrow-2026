@@ -4,7 +4,7 @@ import {
   type KeyPairSigner,
   type Address,
 } from "@solana/kit";
-import * as programClient from "../dist/js-client";
+import * as programClient from "../dist/escrow-client";
 import { TOKEN_EXTENSIONS_PROGRAM } from "solana-kite";
 
 export const log = console.log;
