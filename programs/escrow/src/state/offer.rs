@@ -15,6 +15,8 @@ pub struct Offer {
     pub token_mint_b: Pubkey,
     // The amount of token b being wanted
     pub token_b_wanted_amount: u64,
+    // The token program (Token or Token2022) used for this offer
+    pub token_program: Pubkey,
     // Used to calculate the address for this account, we save it as a performance optimization
     pub bump: u8,
 }

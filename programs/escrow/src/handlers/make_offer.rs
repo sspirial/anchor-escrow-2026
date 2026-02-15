@@ -95,6 +95,7 @@ pub fn make_offer(
         token_mint_a: context.accounts.token_mint_a.key(),
         token_mint_b: context.accounts.token_mint_b.key(),
         token_b_wanted_amount,
+        token_program: context.accounts.token_program.key(),
         bump: context.bumps.offer,
     });
     Ok(())

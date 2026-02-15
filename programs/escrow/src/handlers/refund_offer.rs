@@ -30,6 +30,8 @@ pub struct RefundOffer<'info> {
         mut,
         close = maker,
         has_one = maker,
+        has_one = token_mint_a,
+        has_one = token_program,
         seeds = [b"offer", offer.id.to_le_bytes().as_ref()],
         bump = offer.bump
     )]
